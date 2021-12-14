@@ -1,7 +1,7 @@
 from flask import Flask, request, Response, render_template, jsonify, session, redirect,url_for
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user 
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson import ObjectId
 import uuid
@@ -17,14 +17,14 @@ mongo = pymongo.MongoClient(host="localhost", port=27017, serverSelectionTimeout
 mongo.server_info()
 db = mongo.todo_users
 User  = db.users
-#manager = LoginManager()
+#login_manager = LoginManager()
 
 app = Flask(__name__)
 CORS(app, resources={r"/": {"origin": "*"}})
 bcrypt = Bcrypt(app) 
 app.config["SECRET_KEY"] ="youcannotguessit"
 secret_key = "youcannotguessit"
-#manager.init_app(app)
+#login_manager.init_app(app)
 
 
 
@@ -34,16 +34,20 @@ secret_key = "youcannotguessit"
 
 
 @app.route("/home")
+@app.route("/")
 #@login_required
 def home():
-    if "email" in session:
-        return Response("welcome " + session["username"], 200)
+    if "username" in session:
+        #return ("welcome " + session["username"], 200)
+        access = {"email":session["username"]}
+        return Response(json.dumps({"message": f"user created for {session['username']}", "status":"Success", "token":jwt.encode(access, secret_key, algorithm="HS256")}))
     return render_template("home.html", template_folder="templates")
 
 
 
 @app.route("/signin", methods = ["GET", "POST"])
 def signin():
+    
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
@@ -53,8 +57,10 @@ def signin():
             if check_password_hash(check_user["password"],password):
                 #return Response(json.dumps({"message":"continue with this id", "status":"success"}), 200)
                 session["username"] = check_user["username"]
-                print(check_user["username"])
+                #login_user(check_user)
+                #print(check_user["username"])
                 return redirect(url_for("home"))
+    
     return render_template("signin.html", template_folder = "templates")            
             
 
@@ -74,9 +80,11 @@ def signup():
         #login_user(access)
     return render_template("signup.html")
 
-
-
-
+#@app.route("/logout")
+#def logout():
+#    if "username" in session:
+#        logout_user()
+#        return redirect(url_for("login"))
 
 
 

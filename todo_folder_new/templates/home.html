@@ -9,6 +9,9 @@
     {% endblock %}
 </head>
 <body>
+    <a href = "{{url_for('home')}}"> home </a><br>
+    <a href = "{{url_for('signin')}}"> signin </a><br>
+    <a href = "{{url_for('signup')}}"> signup </a>
     {% block body %}
     <h1>this is the home</h1>
     {% endblock %}
