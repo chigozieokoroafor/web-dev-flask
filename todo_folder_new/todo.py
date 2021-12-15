@@ -4,9 +4,9 @@ from flask_cors import CORS
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user 
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
-from bson import ObjectId
-import uuid
-import jwt
+#from bson import ObjectId
+#import uuid
+#import jwt
 from datetime import datetime, timedelta
 from functools import wraps
 import pymongo
@@ -18,7 +18,7 @@ mongo = pymongo.MongoClient(host="localhost", port=27017, serverSelectionTimeout
 mongo.server_info()
 db = mongo.todo_users
 User  = db.users
-login_manager = LoginManager()
+#login_manager = LoginManager()
 
 app = Flask(__name__)
 CORS(app, resources={r"/": {"origin": "*"}})
@@ -31,19 +31,17 @@ jwt = JWTManager(app)
 
 
 
-#@manager.user_loader
-#def load_user(_id):
-#    return 
 
 
 @app.route("/home")
 @app.route("/")
-#@login_required
+#@jwt_required
 def home():
-    if "username" in session:
+    if session["logged_in"]==True:
         #return ("welcome " + session["username"], 200)
-        access = {"email":session["username"]}
-        return Response(json.dumps({"message": f"user created for {session['username']}", "status":"Success", "token":jwt.encode(access, secret_key, algorithm="HS256")}))
+        access = {"username":session["username"]}
+        access_token = create_access_token(identity=access)
+        return Response(json.dumps({"message": f"user created for {session['username']}", "status":"Success", "token":access_token}))
     return jsonify({"message": "please login", "status":"neutral"})
 
 
@@ -64,6 +62,7 @@ def signin():
             #message = json.dumps({"message":("welcome" + check_user["username"]), "status":"success"})
             #return (message)
             access_token = create_access_token(identity={"email":email})
+            session["logged_in"] = True
             return json.dumps({"message": "welcome"+" "+check_user["username"], "status":"Success", "token":access_token})
         password_message = json.dumps({"message":"incorrect password", "status":"error"})
         return (password_message)
@@ -85,17 +84,24 @@ def signup():
         access = {"email":email, "password":password}
         dbResponse = db.users.insert_one(new_user)
         access_token = create_access_token(identity={"email":email})
+        session["logged_in"] = True
         return json.dumps({"message": "user created", "status":"Success", "token":access_token})
         #login_user(access)
     #return render_template("signup.html")
 
-#@app.route("/logout")
-#def logout():
-#    if "username" in session:
-#        logout_user()
+@app.route("/logout")
+def logout():
+    if "username" in session:
+        session["logged_in"] = False
 #        return redirect(url_for("login"))
+    return home()
 
-
+@app.route("/test")
+@jwt_required()
+def test():
+    user_jwt = get_jwt_identity()
+    print(user_jwt)
+    return "Secret Data", 200
 
 
 
