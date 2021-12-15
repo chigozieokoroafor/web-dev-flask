@@ -9,11 +9,12 @@
     {% endblock %}
 </head>
 <body>
-    {% block body %}
-    {{ if current_user.is_authenticated }}
     
-    <h1>this is the home</h1>
-    {{endif}}
+    <a href = "{{url_for('home')}}"> home </a><br>
+    <a href = "{{url_for('signin')}}"> signin </a><br>
+    <a href = "{{url_for('signup')}}"> signup </a>
+    {% block body %}
+    
     {% endblock %}
 </body>
 </html>
