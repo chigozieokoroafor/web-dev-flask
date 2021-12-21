@@ -10,10 +10,31 @@
 </head>
 <body>
     {% block body %}
-    {{ if current_user.is_authenticated }}
     
-    <h1>this is the home</h1>
-    {{endif}}
+    <h1>this is the the dashbord</h1>
+    
+    
+    {% if session["logged_in"] == True %}
+        
+        <a href="{{url_for('home')}}"> home </a><br>
+        <a href="{{url_for('logout')}}"> logout </a><br>
+
+        <p>welcome {{ session["username"]}}, {{ token }}</p>
+        
+        <form method="POST">
+        <textarea placeholder="place your text here" name="notes"></textarea>
+        <button name="note" type="submit">add note</button>
+        
+        </form>
+        
+        {% for note_ in tasks %}
+            <p>{{note_}}</p>
+        {% endfor %}
+        
+    {%else%}
+        <a href="{{url_for('signup')}}"> signup </a><br>
+        <a href="{{url_for('signin')}}"> signin </a><br>
+    {% endif %}
     {% endblock %}
 </body>
 </html>
