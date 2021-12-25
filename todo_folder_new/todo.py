@@ -72,14 +72,14 @@ def home():
 def signin():
     if request.method == "POST":
 
-        email = request.form.get("email")
+        matric_no = request.form.get("matric_no")
         password = request.form.get("password")
             
-        check_user = User.find_one({"email":email})
+        check_user = User.find_one({"username":matric_no.upper()})
         if check_user: 
             if check_password_hash(check_user["password"],password):
                 session["username"] = check_user["username"]
-                access_token = create_access_token(identity={"email":email})
+                access_token = create_access_token(identity={"matric_number":matric_no})
                 session["logged_in"] = True
                 #return json.dumps({"message": "welcome"+" "+check_user["username"], "status":"Success", "token":access_token})
                 return redirect(url_for("home"))            
@@ -98,18 +98,18 @@ def signin():
 def signup():
     if request.method =="POST":
         email = request.form.get("email")
-        username = request.form.get("username")
+        matric_number = request.form.get("matric_number")
         password = request.form.get("password")
         time = datetime.utcnow()
         
         hashed = generate_password_hash(password)
-        new_user = {"email":email, "username": username, "password":hashed, "time created":time}
+        new_user = {"email":email, "matric_number": matric_number.upper(), "password":hashed, "time created":time}
         access = {"email":email, "password":password}
         dbResponse = db.users.insert_one(new_user)
         access_token = create_access_token(identity={"email":email})
         session["logged_in"] = True
         #return json.dumps({"message": "user created", "status":"Success", "token":access_token})
-        return redirect(url_for(endpoint="home"))
+        return redirect(url_for("home"))
         
     return render_template("signup.html")
 
@@ -133,6 +133,12 @@ def test():
 
 
 
+@app.route("/admin", methods=["POST", "GET"])
+def admin():
+   
+    if request.method == "GET":
+            return render_template("admin.html", template_folder = "templates")
+    return "an error occured"
 
 
 

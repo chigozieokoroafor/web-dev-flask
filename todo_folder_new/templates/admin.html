@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{%block head%}
+<title> ADMIN </title>
+{%endblock%}
+
+{% block body %}
+<p> this is the admin page</p>
+
+<form action="POST">
+    <input name= "matric_number_search" id="search" placeholder="search matric number ...">
+    <button type="submit">Search</button>
+    {{ if matric_number_search in User }}
+    <p>{{ matric_number_search}}</p>
+
+    {{endif}}
+</form>
+{% endblock %}

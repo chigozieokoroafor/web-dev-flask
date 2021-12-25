@@ -6,10 +6,10 @@
 
 {% block body%}
     <p>this is the sign up page</p>
-    <form method="POST" action="{{url_for('signup')}}">
+    <form method="POST">
 
         <input name="email" id="email" placeholder=" email.."><br>
-        <input name="username" id="username" placeholder=" username.."><br>
+        <input name= "matric_number" id="matric_number" placeholder="matric number..."><br>
         <input type = "password" name="password" id="password" placeholder=" password.."><br>
         <button type="submit">POST</button>
     </form>
