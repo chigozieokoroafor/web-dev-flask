@@ -1,3 +1,4 @@
+from winreg import REG_SZ
 from flask import Flask, redirect, request, Response, jsonify
 #from flask.json import jsonify
 from werkzeug.wrappers import response
@@ -29,9 +30,11 @@ def card():
     
     if request.method =="GET":
         reg_number = request.form.get("reg_number")
-        user_ = user_info.find_one({"registrationNumber":reg_number})
-        stage_one = user_check.find_one({"status":"incomplete", "user":ObjectId(user_["_id"])})
-        return (json.dumps(user_), 200)
+        user= user_info.find_one({"registrationNumber":reg_number})
+        stage_one = user_check.find_one({"user":(user.get("_id"))})
+        #return (json.dumps(stage_one), 200)
+        message = {"status":stage_one["status"], "name":user["firstName"]}
+        return json.dumps(message)
     return "this is the work in progress"
 
 
