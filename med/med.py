@@ -1,5 +1,5 @@
-from winreg import REG_SZ
-from flask import Flask, redirect, request, Response, jsonify
+from flask import Flask, redirect, request, Response, jsonify, send_file  
+import cv2
 #from flask.json import jsonify
 from werkzeug.wrappers import response
 import json
@@ -7,7 +7,7 @@ import pymongo
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from bson import ObjectId
-
+from PIL import Image
 
 
 #mongo = pymongo.MongoClient(host="localhost", port=27017, serverSelectionTimeoutMS=100000)
@@ -33,8 +33,15 @@ def card():
         user= user_info.find_one({"registrationNumber":reg_number})
         stage_one = user_check.find_one({"user":(user.get("_id"))})
         #return (json.dumps(stage_one), 200)
-        message = {"status":stage_one["status"], "name":user["firstName"]}
-        return json.dumps(message)
+        if stage_one["status"].upper=="COMPLETE" :
+            #img  =  cv2.imread("4.jpg")
+            #img = Image.open(open("4.jpg").stream)
+            
+            #img = send_file(stage_one["passport"])
+            #print(img.shape)
+            message = {"status":stage_one["status"], "name":user["firstName"], "registrationNumber":user["registrationNumber"], "passport":stage_one["passport"]}
+            return json.dumps(message), 200
+        return("error in verification", 401)
     return "this is the work in progress"
 
 
