@@ -14,7 +14,7 @@
     <h1>this is the the dashbord</h1>
     
     
-    {% if session["logged_in"] == True %}
+    {% if session["logged_in"] %}
         
         <a href="{{url_for('home')}}"> home </a><br>
         <a href="{{url_for('logout')}}"> logout </a><br>
@@ -34,6 +34,7 @@
     {%else%}
         <a href="{{url_for('signup')}}"> signup </a><br>
         <a href="{{url_for('signin')}}"> signin </a><br>
+        <a href="{{url_for('logout')}}"> logout </a><br>
     {% endif %}
     {% endblock %}
 </body>

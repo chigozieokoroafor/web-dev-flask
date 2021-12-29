@@ -34,38 +34,32 @@ jwt = JWTManager(app)
 
 
 
-@app.route("/home", methods=["GET", "POST"])
-@app.route("/", methods=["GET", "POST"])
-def home():
-    #if "username" in session :
-    try:
-        if session["logged_in"]==True:
-            #return ("welcome " + session["username"], 200)
-            access = {"username":session["username"]}
-            access_token = create_access_token(identity=access)
-            if request.method == "POST":
-                note = request.form.get("notes")
-                note_dict = {"email":User.find_one({"username":session["username"]})["email"], "notes":note}
-                Notes.insert_one(note_dict)
-            
-                note_list = []
-                for note_ in Notes.find({"email":User.find_one({"username":session["username"]})["email"]}):
-                    #return (note_["notes"])
-                    note_list.append(note_["notes"])
-                #return jsonify(note_list)
-                return render_template("home.html", template_folder="templates", tasks=note_list)
-            return render_template("home.html", template_folder="templates", token=access_token)
-            #return Response(json.dumps({"message": "welcome"+" "+f"{session['username']}", "status":"Success", "token":access_token}))
-        
-        else:
-            return render_template("home.html", template_folder="templates")
-            #return jsonify({"message": "please login", "status":"neutral"})
-    except:
-        #return render_template('home.html')
-        return "an error occured"
     
 
 
+
+
+
+
+@app.route("/signup", methods = ["GET", "POST"])
+def signup():
+    if request.method =="POST":
+        email = request.form.get("email")
+        matric_number = request.form.get("matric_number")
+        password = request.form.get("password")
+        time = datetime.utcnow()
+        
+        hashed = generate_password_hash(password)
+        new_user = {"email":email, "matric_number": matric_number.upper(), "password":hashed, "time created":time}
+        access = {"email":email, "password":password}
+        dbResponse = db.users.insert_one(new_user)
+        access_token = create_access_token(identity={"email":email})
+        session["logged_in"] = True
+        #return json.dumps({"message": "user created", "status":"Success", "token":access_token})
+        return redirect(url_for("home"))
+        
+    return render_template("signup.html")
+    
 
 @app.route("/signin", methods = ["GET", "POST"]) 
 #login_manager.request_loader
@@ -93,30 +87,41 @@ def signin():
     #return Response("please signin using postman", 200)
             
 
+@app.route("/", methods=["GET", "POST"])
+def home():
+    #if "username" in session :
+    try:
+        if session["username"]:
+            #return ("welcome " + session["username"], 200)
+            access = {"username":session["username"]}
+            access_token = create_access_token(identity=access)
+            if request.method == "POST":
+                note = request.form.get("notes")
+                note_dict = {"email":User.find_one({"username":session["username"]})["email"], "notes":note}
+                Notes.insert_one(note_dict)
+            
+                note_list = []
+                for note_ in Notes.find({"email":User.find_one({"username":session["username"]})["email"]}):
+                    #return (note_["notes"])
+                    note_list.append(note_["notes"])
+                #return jsonify(note_list)
+                return render_template("home.html", template_folder="templates", tasks=note_list)
+            return render_template("home.html", template_folder="templates", token=access_token)
+            #return Response(json.dumps({"message": "welcome"+" "+f"{session['username']}", "status":"Success", "token":access_token}))
+        
+        else:
+            return render_template("home.html", template_folder="templates")
+            #return jsonify({"message": "please login", "status":"neutral"})
+    except:
+        return render_template('home.html')
+        #return "an error occured"
 
-@app.route("/signup", methods = ["GET", "POST"])
-def signup():
-    if request.method =="POST":
-        email = request.form.get("email")
-        matric_number = request.form.get("matric_number")
-        password = request.form.get("password")
-        time = datetime.utcnow()
-        
-        hashed = generate_password_hash(password)
-        new_user = {"email":email, "matric_number": matric_number.upper(), "password":hashed, "time created":time}
-        access = {"email":email, "password":password}
-        dbResponse = db.users.insert_one(new_user)
-        access_token = create_access_token(identity={"email":email})
-        session["logged_in"] = True
-        #return json.dumps({"message": "user created", "status":"Success", "token":access_token})
-        return redirect(url_for("home"))
-        
-    return render_template("signup.html")
 
 @app.route("/logout")
+#@jwt_required
 def logout():
-    if "username" in session:
-        session["logged_in"] = False
+    if session["username"]:
+        session.pop("username")
         return redirect(url_for(endpoint ="home"))
     else:
         return "no user in session", 401

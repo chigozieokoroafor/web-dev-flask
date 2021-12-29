@@ -1,4 +1,4 @@
-from flask import Flask, redirect, request, Response, jsonify, send_file  
+from flask import Flask, redirect, request, Response, jsonify, send_file 
 import cv2
 #from flask.json import jsonify
 from werkzeug.wrappers import response
@@ -32,17 +32,22 @@ def card():
         #reg_number = request.form.get("reg_number")
         reg_number = request.args[("RegistrationNumber")]
         user= user_info.find_one({"registrationNumber":reg_number})
-        stage_one = user_check.find_one({"user":(user.get("_id"))})
-    
-        #return (json.dumps(stage_one), 200)
-        if stage_one["status"]=="in review" :
+        
+        if user :
+            stage_one = user_check.find_one({"user":(user.get("_id"))})
+            #return (json.dumps(stage_one), 200)
+            if stage_one["status"]=="complete" :
 
-            message = {"status":stage_one["status"], "name":user["firstName"], "registrationNumber":user["registrationNumber"], "passport":stage_one["passport"]}
-            return json.dumps(message), 200
-        else:
-            return("error in verification", 401)
+                message = {"status":stage_one["status"], "name":user["firstName"], "registrationNumber":user["registrationNumber"], "passport":stage_one["passport"]}
+                return json.dumps(message), 200
+            else:
+                return Response(response=("status isn/'t complete"), status=401)
+        else: 
+            return Response(response= ("user not found"), status=404)
     return "this is the work in progress"
+    
+            
 
 
 if __name__ =="__main__":
-    app.run(debug=True, port=90)
+    app.run(debug=True, port=180)
