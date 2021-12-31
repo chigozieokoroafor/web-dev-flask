@@ -4,9 +4,9 @@ from flask_cors import CORS
 
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
-#from bson import ObjectId
+from bson import ObjectId
 #import uuid
-#import jwt
+
 from datetime import date, datetime, timedelta
 from functools import wraps
 import pymongo
@@ -26,6 +26,7 @@ CORS(app, resources={r"/": {"origin": "*"}})
 bcrypt = Bcrypt(app) 
 app.config["JWT_SECRET_KEY"] ="youcannotguessit"
 app.config["SECRET_KEY"] = "youcanneverguessit"
+app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies", "query_string"]
 secret_key = "youcannotguessit"
 jwt = JWTManager(app)
 #login_manager.init_app(app)
@@ -52,8 +53,9 @@ def signup():
         hashed = generate_password_hash(password)
         new_user = {"email":email, "matric_number": matric_number.upper(), "password":hashed, "time created":time}
         access = {"email":email, "password":password}
-        dbResponse = db.users.insert_one(new_user)
-        access_token = create_access_token(identity={"email":email})
+        dbResponse = User.insert_one(new_user)
+        check_user = User.find_one({"matric_number":matric_number})
+        access_token = create_access_token(identity={"id":ObjectId(check_user["_id"])})
         session["logged_in"] = True
         #return json.dumps({"message": "user created", "status":"Success", "token":access_token})
         return redirect(url_for("home"))
@@ -73,7 +75,7 @@ def signin():
         if check_user: 
             if check_password_hash(check_user["password"],password):
                 session["username"] = check_user["username"]
-                access_token = create_access_token(identity={"matric_number":matric_no})
+                access_token = create_access_token(identity={"id":"61c3ea089da1cd94e46810ca"})
                 session["logged_in"] = True
                 #return json.dumps({"message": "welcome"+" "+check_user["username"], "status":"Success", "token":access_token})
                 return redirect(url_for("home"))            
@@ -88,12 +90,14 @@ def signin():
             
 
 @app.route("/", methods=["GET", "POST"])
+@jwt_required()
 def home():
     #if "username" in session :
     try:
         if session["username"]:
             #return ("welcome " + session["username"], 200)
-            access = {"username":session["username"]}
+            access = get_jwt_identity()
+            print(access)
             access_token = create_access_token(identity=access)
             if request.method == "POST":
                 note = request.form.get("notes")
@@ -128,12 +132,6 @@ def logout():
     #return home()
     
 
-@app.route("/test")
-@jwt_required()
-def test():
-    user_jwt = get_jwt_identity()
-    print(user_jwt)
-    return "Secret Data", 200
     
 
 
@@ -142,9 +140,15 @@ def test():
 def admin():
    
     if request.method == "GET":
-            return render_template("admin.html", template_folder = "templates")
+            return render_template("admin.html", template_folder = "templates", db=User)
     return "an error occured"
 
+@app.route("/test")
+@jwt_required()
+def test():
+    user_jwt = get_jwt_identity()
+    print(user_jwt)
+    return "Secret Data", 200
 
 
 if __name__ =="__main__":

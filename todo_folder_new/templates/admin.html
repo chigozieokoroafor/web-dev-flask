@@ -9,9 +9,9 @@
 <form action="POST">
     <input name= "matric_number_search" id="search" placeholder="search matric number ...">
     <button type="submit">Search</button>
-    {{ if matric_number_search in User }}
-    <p>{{ matric_number_search}}</p>
+    {% if db.find_one({'matric_no': matric_number_search}) %}
+    <p>{{ matric_number_search }}</p>
 
-    {{endif}}
+    {% endif %}
 </form>
 {% endblock %}
